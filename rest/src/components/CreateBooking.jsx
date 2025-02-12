@@ -30,15 +30,21 @@ export default function CreateBooking() {
         `${bookingDate}T${bookingTime}:00`
       ).toISOString();
 
-      const response = await axios.get(
-        "https://4a63-83-254-228-245.ngrok-free.app/getavailabletables",
+      console.log("Requested DateTime:", requestedDateTime);
+      console.log("Party Size:", partySize);
+
+      const response = await axios.post(
+        "https://localhost:7185/getavailabletables",
         {
-          params: {
-            requestedDateTime,
-            partySize,
-          },
+          requestedDateTime,
+          partySize,
         }
       );
+
+      if (response.data.length === 0) {
+        setError("Inga tillgängliga bord hittades för den valda tiden.");
+        return;
+      }
 
       setAvailableTables(response.data);
       setStep(2);
@@ -77,8 +83,10 @@ export default function CreateBooking() {
         tableId: selectedTable,
       };
 
+      console.log("Booking Data:", booking);
+
       await axios.post(
-        "https://4a63-83-254-228-245.ngrok-free.app/makenewbooking",
+        "https://localhost:7185/makenewbooking",
         booking
       );
 
@@ -246,7 +254,7 @@ export default function CreateBooking() {
                 <option value="">Välj ett bord</option>
                 {availableTables.map((table) => (
                   <option key={table.id} value={table.id}>
-                    Bord {table.id} - {table.capacity} personer
+                    Bord {table.id} - {table.seats} personer
                   </option>
                 ))}
               </select>
